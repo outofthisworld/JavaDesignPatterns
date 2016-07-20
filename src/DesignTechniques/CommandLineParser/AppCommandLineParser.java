@@ -2,6 +2,7 @@ package DesignTechniques.CommandLineParser;
 
 import com.sun.javaws.exceptions.InvalidArgumentException;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -10,13 +11,29 @@ import java.util.Set;
  */
 public class AppCommandLineParser extends CommandLineParser<ICommand<Option>> {
 
+    private final HashMap<String, ICommand<Option>> commands = new HashMap<String, ICommand<Option>>() {
+        {
+            try {
+                put("file", new DownloadCommand());
+                put("help", new HelpCommand());
+            } catch (InvalidArgumentException e) {
+                e.printStackTrace();
+            }
+
+        }
+    };
+
+    {
+        commands.values().forEach(this::addCommand);
+    }
+
     private class DownloadCommand extends Command<Option> implements OptionArgumentValidator {
 
         public DownloadCommand() throws InvalidArgumentException {
             super("file", "-");
              addOption(new Option("f", "flush", true, false, this))
-            .addOption(new Option("en", "encode", false, true, this))
-            .addOption(new Option("e", "encode", false, true, this));
+                     .addOption(new Option("en", "encode", false, true))
+                     .addOption(new Option("e", "encode", false, true));
         }
 
         @Override
@@ -42,23 +59,45 @@ public class AppCommandLineParser extends CommandLineParser<ICommand<Option>> {
 
         @Override
         public boolean validateOptionArgument(String option, String argument) {
-            if (option.equals("f") && argument.startsWith("file://"))
-                return true;
+            return option.equals("f") && argument.startsWith("file://");
 
-            return false;
         }
     }
 
-    private ICommand<Option> commands[];
+    private class HelpCommand extends Command<Option> implements OptionArgumentValidator {
 
-    {
-        try {
-            commands = new ICommand[]{new DownloadCommand()};
-            for(ICommand command:commands){
-                addCommand(command);
+        public HelpCommand() throws InvalidArgumentException {
+            super("help", "-");
+            addOption(new Option("display", "Help", false, true))
+                    .addOption(new Option("show", "Show command help", true, true));
+        }
+
+        @Override
+        public boolean validateCommandArg(int commandPos, String command) {
+            return false;
+        }
+
+        @Override
+        public boolean execute(Map<String, String> optArgs, Set<String> commandArguments) {
+
+            if (optArgs.containsKey("-display")) {
+                commands.values().forEach(e -> {
+                    if (e != null) {
+                        System.out.println(e.getUsage());
+                    }
+                });
             }
-        } catch (InvalidArgumentException e) {
-            System.out.println(e.getMessage());
+
+            if (optArgs.containsKey("-show")) {
+                System.out.println(commands.get("-show").getUsage());
+            }
+
+            return true;
+        }
+
+        @Override
+        public boolean validateOptionArgument(String option, String argument) {
+            return option.equals("show") && commands.containsKey(argument);
         }
     }
 }

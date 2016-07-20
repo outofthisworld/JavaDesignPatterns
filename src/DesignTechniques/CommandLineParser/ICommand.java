@@ -14,4 +14,6 @@ public interface ICommand<T extends Option> extends IExecutableCommand {
     boolean validateCommandArg(int commandPos,String command);
     Map<String,Option> getRequiredOptions();
     Map<String,Option> getAllOptions();
+
+    String getUsage();
 }

@@ -69,6 +69,12 @@ public final class Option implements Cloneable {
         return true;
     }
 
+    public String getUsage() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n required = ").append(!isOptional).append("\n required argument = ").append(requiresArgument).append("\n description = ").append(description).append("\n");
+        return sb.toString();
+    }
+
     public Option setArgumentValidator(OptionArgumentValidator argumentValidator){
         this.argumentValidator = argumentValidator;
         return this;

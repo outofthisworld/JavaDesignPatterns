@@ -33,6 +33,7 @@ public abstract class Command<T extends Option> implements ICommand<T> {
         return options.get(optionPrefix);
     }
 
+
     public boolean hasOption(String option, boolean hasPrefix){
         Objects.requireNonNull(option);
         if(hasPrefix)
@@ -46,11 +47,24 @@ public abstract class Command<T extends Option> implements ICommand<T> {
             return requiredOptions;
         }
         HashMap<String,Option> map = new HashMap<>(options.values().size());
-        for(Option op: options.values()){
-            map.put(optionPrefix+op.getOption(),op);
-        }
+        options.values().stream().filter(op -> !op.isOptional()).forEach(op -> map.put(optionPrefix + op.getOption(), op));
         requiredOptions = map;
         return map;
+    }
+
+    @Override
+    public String getUsage() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Command ").append(command).append(": \n").append("required options: (\n");
+
+        for (Map.Entry<String, Option> en : requiredOptions.entrySet()) {
+            sb.append(en.getKey()).append(" usage: ").append(en.getValue().getUsage()).append("\n");
+        }
+        sb.append(")\nother options: ( \n");
+        options.entrySet().stream().filter(entry -> !requiredOptions.containsKey(entry.getKey()))
+                .forEach(entry -> sb.append(entry.getKey()).append(" usage: ").append(entry.getValue().getUsage()));
+        sb.append(")\n");
+        return sb.toString();
     }
 
     @Override
