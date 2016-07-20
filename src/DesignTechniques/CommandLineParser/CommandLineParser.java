@@ -2,8 +2,6 @@ package DesignTechniques.CommandLineParser;
 
 import sun.plugin.dom.exception.InvalidStateException;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -12,13 +10,7 @@ import java.util.*;
 public class CommandLineParser<T extends ICommand> {
     private final HashMap<String, T> commands = new HashMap<>();
 
-    public CommandLineParser() {
-
-    }
-
-    public T getCommand(String command) {
-        return commands.get(command);
-    }
+    public CommandLineParser() {}
 
     public void parseCommandLine(String[] args) throws CommandLineParserError {
         Objects.requireNonNull(args);
@@ -66,25 +58,6 @@ public class CommandLineParser<T extends ICommand> {
         commandObj.execute(optArgs, commandArguments);
     }
 
-    private final void throwArgException(CommandLineParser.CommandParserError error, String message) throws CommandLineParserError {
-        throw new CommandLineParserError(error, message);
-    }
-
-    public void addClass(Class<?> klazz) throws IllegalAccessException, InstantiationException {
-        for(Field f :klazz.getFields()){
-            f.setAccessible(true);
-            Annotation anno = f.getAnnotation(CommandOption.class);
-            if(anno != null){
-                try {
-                    String command = anno.annotationType().getField("command").get(anno).toString();
-                    String commandPrefix = anno.annotationType().getField("optionPrefix").get(anno).toString();
-                } catch (NoSuchFieldException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
     public void addCommand(T command) {
         if (commands.containsKey(command.getCommand()))
             throw new InvalidStateException("Command " + command.getCommand() + " already exists");
@@ -107,10 +80,18 @@ public class CommandLineParser<T extends ICommand> {
         return false;
     }
 
+
+    public T getCommand(String command) {
+        return commands.get(command);
+    }
+
     public void removeCommand(String commandName) {
         commands.remove(commandName);
     }
 
+    private final void throwArgException(CommandLineParser.CommandParserError error, String message) throws CommandLineParserError {
+        throw new CommandLineParserError(error, message);
+    }
 
     public enum CommandParserError {
         NO_INPUT(1),
@@ -126,5 +107,4 @@ public class CommandLineParser<T extends ICommand> {
             this.code = errorCode;
         }
     }
-
 }
