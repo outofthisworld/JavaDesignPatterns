@@ -10,8 +10,12 @@ public class Main {
         switch (commandLineParserError.getError()){
             case NO_ARGUMENT_SPECIFIED_FOR_OPTION:
                 return "No argument specified for one or more of the options that require it try using help -display for proper command usage";
-            case INVALID_ARGUMENT_SPECIFIED:
+            case INVALID_OPTION_ARGUMENT_SPECIFIED:
+                return "Invalid option argument specified, use: help -display for details";
+            case INVALID_COMMAND_ARGUMENT_SPECIFIED:
                 return "Invalid argument specified, use: help -display for details";
+            case OPT_ARGUMENT_STARTS_WITH_PREFIX:
+                return "Option arguments do not need to being with prefixes, use: help -display for details";
             case NO_INPUT:
                 return "No input was specified, please use: help -display for details";
             case MISSING_REQUIRED_OPTIONS:

@@ -27,28 +27,41 @@ public class CommandLineParser<T extends ICommand> {
         Map<String, Option> requiredOptions = commandObj.getRequiredOptions();
         Map<String, String> optArgs = new HashMap<>();
         Set<String> commandArguments = new LinkedHashSet<>();
-        for (int i = 1, c = 0; i - c < args.length; i += 2) {
-            String arg = args[i - c];
+        int commandArgPos = 0;
+        for (int i = 1; i  < args.length; i++) {
+            String arg = args[i];
 
             if (arg.startsWith(commandObj.getOptionPrefix())) {
                 if (!commandObj.hasOption(arg, true))
-                    throwArgException(CommandParserError.OPTION_NOT_SUPPORTED,
-                            "Invalid usage: Command does not support the option " + arg);
+                    throwArgException(CommandParserError.OPTION_NOT_SUPPORTED, "Invalid usage: Command does not support the option " + arg);
 
                 Option o = commandObj.getOption(arg);
                 if (o.requiresArgument()) {
-                    if ((i + 1) - c > (args.length - 1))
+                    int nextArg = i + 1;
+                    if (nextArg > (args.length - 1))
                         throwArgException(CommandParserError.NO_ARGUMENT_SPECIFIED_FOR_OPTION, "Invalid usage: No argument specified for option " + arg);
 
-                    if (!o.validateArgument(args[(i + 1) - c]))
-                        throwArgException(CommandParserError.INVALID_ARGUMENT_SPECIFIED, "Invalid usage: Invalid argument specified for option " + arg);
-                } else {
-                    c++;
+                    String optArg = args[nextArg];
+
+                    if(optArg.startsWith(commandObj.getOptionPrefix()))
+                        throwArgException(CommandParserError.OPT_ARGUMENT_STARTS_WITH_PREFIX, "Invalid usage: Option argument cannot start with prefix");
+
+
+                    if (!o.validateOptionArgument(optArg))
+                        throwArgException(CommandParserError.INVALID_OPTION_ARGUMENT_SPECIFIED, "Invalid usage: Invalid argument specified for option " + arg);
+
+                    optArgs.put(arg, optArg);
+                    i++;
+                }else{
+                    optArgs.put(arg, arg);
                 }
-                optArgs.put(arg, args[(i + 1) - c]);
                 requiredOptions.remove(arg);
             } else {
+                if(!commandObj.validateCommandArg(commandArgPos,arg))
+                    throwArgException(CommandParserError.INVALID_COMMAND_ARGUMENT_SPECIFIED, "Invalid usage: Command argument could not be validated " + arg);
+
                 commandArguments.add(arg);
+                commandArgPos++;
             }
         }
 
@@ -98,8 +111,10 @@ public class CommandLineParser<T extends ICommand> {
         INVALID_COMMAND(2),
         OPTION_NOT_SUPPORTED(3),
         NO_ARGUMENT_SPECIFIED_FOR_OPTION(4),
-        INVALID_ARGUMENT_SPECIFIED(5),
-        MISSING_REQUIRED_OPTIONS(6);
+        INVALID_OPTION_ARGUMENT_SPECIFIED(5),
+        MISSING_REQUIRED_OPTIONS(6),
+        OPT_ARGUMENT_STARTS_WITH_PREFIX(7),
+        INVALID_COMMAND_ARGUMENT_SPECIFIED(8);
 
         int code;
 

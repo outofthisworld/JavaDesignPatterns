@@ -10,50 +10,53 @@ import java.util.Set;
  */
 public class AppCommandLineParser extends CommandLineParser<ICommand<Option>> {
 
-    private class DownloadCommand extends Command<Option>{
+    private class DownloadCommand extends Command<Option> implements OptionArgumentValidator {
 
         public DownloadCommand() throws InvalidArgumentException {
             super("file", "-");
-            Option op = new Option("f", "flush", true, true) {
-                @Override
-                public boolean validateArgument(String argument) {
-                    return true;
-                }
-            };
-            Option op2 = new Option("en", "encode", false, true) {
-                @Override
-                public boolean validateArgument(String argument) {
-                    return true;
-                }
-            };
-            Option op3 = new Option("e", "encode", false, true) {
-                @Override
-                public boolean validateArgument(String argument) {
-                    return true;
-                }
-            };
-            addOption(op);
-            addOption(op2);
-            addOption(op3);
+             addOption(new Option("f", "flush", true, false, this))
+            .addOption(new Option("en", "encode", false, true, this))
+            .addOption(new Option("e", "encode", false, true, this));
         }
-
 
         @Override
         public boolean execute(Map<String, String> optArgs, Set<String> commandArguments) {
-            for(Map.Entry<String,String> s:optArgs.entrySet()){
-                System.out.println(s.getKey() + " " + s.getValue());
-            }
 
-            for(String s:commandArguments){
-                System.out.println("Command arg: " + s);
-            }
+            if(optArgs.containsKey("-en"))
+                System.out.println("en option specified");
+
+            if(optArgs.containsKey("-e"))
+                System.out.println("e option specified");
+
+            //No need to check, this option is required and error will be thrown if it doesnt exist
+            String requiredOptionArg = optArgs.get("-f");
+            System.out.println(requiredOptionArg);
+
+            return true;
+        }
+
+        @Override
+        public boolean validateCommandArg(int commandPos, String command) {
+            return true;
+        }
+
+        @Override
+        public boolean validateOptionArgument(String option, String argument) {
+            if (option.equals("f") && argument.startsWith("file://"))
+                return true;
+
             return false;
         }
     }
 
+    private ICommand<Option> commands[];
+
     {
         try {
-            addCommand(new DownloadCommand());
+            commands = new ICommand[]{new DownloadCommand()};
+            for(ICommand command:commands){
+                addCommand(command);
+            }
         } catch (InvalidArgumentException e) {
             System.out.println(e.getMessage());
         }

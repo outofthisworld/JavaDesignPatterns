@@ -3,11 +3,12 @@ package DesignTechniques.CommandLineParser;
 /**
  * Created by Dale on 19/07/16.
  */
-public abstract class Option implements Cloneable,ArgumentValidator {
+public final class Option implements Cloneable {
     private final String option;
     private final boolean isOptional;
     private final String description;
     private final boolean requiresArgument;
+    private OptionArgumentValidator argumentValidator;
 
     public Option(String option){
         this.option = option;
@@ -37,6 +38,14 @@ public abstract class Option implements Cloneable,ArgumentValidator {
         this.description = description;
     }
 
+    public Option(String option, String description, boolean requiresArgument, boolean isOptional,OptionArgumentValidator validator){
+        this.option = option;
+        this.isOptional = isOptional;
+        this.requiresArgument = requiresArgument;
+        this.description = description;
+        this.argumentValidator = validator;
+    }
+
     public boolean requiresArgument(){
         return this.requiresArgument;
     }
@@ -51,5 +60,17 @@ public abstract class Option implements Cloneable,ArgumentValidator {
 
     public String getDescription() {
         return description;
+    }
+
+    public boolean validateOptionArgument(String argument){
+        if(argumentValidator != null){
+            return argumentValidator.validateOptionArgument(this.option, argument);
+        }
+        return true;
+    }
+
+    public Option setArgumentValidator(OptionArgumentValidator argumentValidator){
+        this.argumentValidator = argumentValidator;
+        return this;
     }
 }

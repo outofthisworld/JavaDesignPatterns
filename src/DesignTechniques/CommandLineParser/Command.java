@@ -20,12 +20,13 @@ public abstract class Command<T extends Option> implements ICommand<T> {
         this.optionPrefix = optionPrefix;
     }
 
-    public void addOption(T option){
+    public Command<T> addOption(T option){
         Objects.requireNonNull(option);
         options.put(optionPrefix+option.getOption(),option);
         if(!option.isOptional() && requiredOptions != null){
             requiredOptions.put(optionPrefix+option.getOption(), option);
         }
+        return this;
     }
 
     public Option getOption(String optionPrefix){
